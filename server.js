@@ -34,7 +34,7 @@ router.route('/jobs')
 		job.category = req.body.category;
 		job.description = req.body.description;
 		job.contract = req.body.contract;
-		job.date = req.body.date; 
+		job.date=req.body.date; 
 		job.tags = req.body.tags;
         
         job.save(function(err) {
@@ -55,11 +55,23 @@ router.route('/jobs')
         });
     });
 	
+router.route('/jobs/latest')
+	.get(function(req,res){
+	
+      var requete = Job.find({});
+      requete.sort({date : -1});
+      requete.limit(10);
+      requete.exec(function(err, job) {
+        if (err)
+          res.send(err);
+        res.json(job);
+      });
+  })
 router.route('/jobs/:job_id')
 
     
     .get(function(req, res) {
-        Job.findById(req.params.job_id, function(err, job) {
+       Job.findById(req.params.job_id, function(err, job) {
             if (err)
                 res.send(err);
             res.json(job);
@@ -94,6 +106,9 @@ router.route('/jobs/:job_id')
         });
     });
 	
+	
+
+	
 router.route('/companies')	
 
 	.get(function(req, res) {
@@ -127,7 +142,8 @@ request(url, function(error, response, html){
 				job.category = data.find('.job-link').attr("href").split("/")[2];
 				job.description = " ";
 				job.contract = data.find('.contract').attr("data-contract-type");
-				job.date = data.find('.job-details-right').text();
+				var date = data.find('.job-details-right').text();
+				job.date=getDate(date);
 				data.find('.tag').each(function(){
 					var tag=$(this).attr("data-tag-name");
 					job.tags.push(tag);
@@ -141,6 +157,27 @@ request(url, function(error, response, html){
 }})
 }
 });	
+
+function getDate(date)
+{
+var tableau_mois = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept." ,"oct.", "nov.", "déc."];
+var split_date = date.split("");
+
+var index = tableau_mois.indexOf(split_date[1])+1;
+if(index != -1 ){
+        return new Date(split_date[2]+"/"+index+"/"+split_date[0]);
+  }
+  else{
+    return new Date();
+  }
+}
+
+
+
+
+
+
+
 	
 router.use(function(req, res, next) {
     
